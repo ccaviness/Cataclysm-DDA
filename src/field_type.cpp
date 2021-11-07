@@ -78,8 +78,7 @@ std::string enum_to_string<game_message_type>( game_message_type data )
         case game_message_type::num_game_message_type:
             break;
     }
-    debugmsg( "Invalid game_message_type" );
-    abort();
+    cata_fatal( "Invalid game_message_type" );
 }
 
 template<>
@@ -305,6 +304,8 @@ void field_type::load( const JsonObject &jo, const std::string & )
     optional( jo, was_loaded, "display_field", display_field, false );
     optional( jo, was_loaded, "legacy_make_rubble", legacy_make_rubble, false );
     optional( jo, was_loaded, "wandering_field", wandering_field, field_type_str_id::NULL_ID() );
+
+    optional( jo, was_loaded, "mopsafe", mopsafe, false );
 
     optional( jo, was_loaded, "decrease_intensity_on_contact", decrease_intensity_on_contact, false );
 

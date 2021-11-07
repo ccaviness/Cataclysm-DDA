@@ -18,8 +18,6 @@
 #include "type_id.h"
 #include "value_ptr.h"
 
-class player;
-
 static const activity_id ACT_READ( "ACT_READ" );
 
 static const trait_id trait_HATES_BOOKS( "HATES_BOOKS" );
@@ -191,6 +189,11 @@ TEST_CASE( "character reading speed", "[reading][character][speed]" )
 TEST_CASE( "estimated reading time for a book", "[reading][book][time]" )
 {
     avatar dummy;
+    //Give eyes to our dummy
+    dummy.set_body();
+    REQUIRE( dummy.has_part( bodypart_id( "eyes" ) ) );
+    REQUIRE( dummy.vision_score() != 0 );
+
     dummy.worn.emplace_back( "backpack" );
 
     // Easy, medium, and hard books
@@ -334,7 +337,7 @@ TEST_CASE( "reasons for not being able to read", "[reading][reasons]" )
         }
 
         THEN( "you cannot read without enough skill to understand the book" ) {
-            dummy.set_skill_level( skill_id( "chemistry" ), 5 );
+            dummy.set_knowledge_level( skill_id( "chemistry" ), 5 );
 
             CHECK( dummy.get_book_reader( alpha, reasons ) == nullptr );
             expect_reasons = { "applied science 6 needed to understand.  You have 5" };
@@ -405,15 +408,15 @@ TEST_CASE( "determining book mastery", "[reading][book][mastery]" )
             REQUIRE( book_has_skill( alpha ) );
 
             THEN( "you won't understand it if your skills are too low" ) {
-                dummy.set_skill_level( skill_id( "chemistry" ), 5 );
+                dummy.set_knowledge_level( skill_id( "chemistry" ), 5 );
                 CHECK( dummy.get_book_mastery( alpha ) == book_mastery::CANT_UNDERSTAND );
             }
             THEN( "you can learn from it with enough skill" ) {
-                dummy.set_skill_level( skill_id( "chemistry" ), 6 );
+                dummy.set_knowledge_level( skill_id( "chemistry" ), 6 );
                 CHECK( dummy.get_book_mastery( alpha ) == book_mastery::LEARNING );
             }
             THEN( "you already mastered it if you have too much skill" ) {
-                dummy.set_skill_level( skill_id( "chemistry" ), 7 );
+                dummy.set_knowledge_level( skill_id( "chemistry" ), 7 );
                 CHECK( dummy.get_book_mastery( alpha ) == book_mastery::MASTERED );
             }
         }
@@ -434,7 +437,7 @@ TEST_CASE( "reading a book for skill", "[reading][book][skill]" )
     REQUIRE( dummy.has_identified( alpha.typeId() ) );
 
     GIVEN( "a book you can learn from" ) {
-        dummy.set_skill_level( skill_id( "chemistry" ), 6 );
+        dummy.set_knowledge_level( skill_id( "chemistry" ), 6 );
         REQUIRE( dummy.get_book_mastery( alpha ) == book_mastery::LEARNING );
 
         dummy.set_focus( 100 );
@@ -451,7 +454,8 @@ TEST_CASE( "reading a book for skill", "[reading][book][skill]" )
             }
 
             THEN( "gained a skill level" ) {
-                CHECK( dummy.get_skill_level( skill_id( "chemistry" ) ) > 6 );
+                CHECK( dummy.get_knowledge_level( skill_id( "chemistry" ) ) > 6 );
+                CHECK( dummy.get_skill_level( skill_id( "chemistry" ) ) < 6 );
                 CHECK( dummy.get_book_mastery( alpha ) == book_mastery::MASTERED );
             }
         }
